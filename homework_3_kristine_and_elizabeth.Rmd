@@ -1,0 +1,302 @@
+---
+title: "Homework 3"
+author: "Elizabeth Braatz and Kristine Schoenecker"
+date: "2025-09-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Dr. Dugan was helping 
+
+Pre-work: Call your libraries 
+```{r}
+library(lubridate)
+library(tidyverse)
+library(tibble)
+library(dplyr)
+library(LakeMetabolizer)
+```
+
+
+# Part 1 
+
+1. Create a variable called temp_C and assign it the value of 18.5 (degrees Celsius)
+
+```{r}
+temp_c = 18.5 
+```
+
+2. Convert temp_C to Fahrenheit and store it in a new variable called temp_F
+
+```{r}
+temp_f = ((temp_c*(9/5)) + 32)
+```
+
+Write a single line of code that prints:
+"The water temperature is XX °C (YY °F)", where XX and YY are replaced with
+your variables.
+
+```{r}
+print(paste0("The water temperature is ", temp_c,"°C (",temp_f,"°F)"))
+```
+# Vectors and Arrays 
+
+1. Create a vector called species_counts with the following values:
+  Bluegill = 12, Bass = 7, Sunfish = 21, Carp = 3
+
+```{r}
+species_counts = c(Bluegill = 12,Bass = 7,Sunfish = 21,Carp = 3) #named vectors! So cool!
+```
+
+
+2. Write code to:
+o Find the total number of fish counted.
+```{r}
+#Fancy 
+species_counts = c(12,7,21,3)
+total_count = 0 
+
+for (count in species_counts) {
+  total_count = total_count + count
+  print(total_count)
+}
+
+#Simple 
+sum(species_counts)
+```
+
+Find the species with the highest count.
+```{r}
+max(species_counts) #OK this gives us the total number but not the species, we will need to redo it as a dataframe after all 
+species_counts[which.max(species_counts)]
+```
+
+3. Create a 3×3 array (matrix) that represents chlorophyll concentrations (μg/L) measured at
+3 depths (surface, mid, bottom) on 3 different days. Use arbitrary numbers but make them
+realistic (e.g., 1–50).
+
+```{r}
+#library(tibble) #Tibbles are basically dataframes
+#library(lubridate)
+chloro_tibble = tibble(
+  chlorophyll_concentration_ugL = c(30,40,50,20,25,30,3,5,5), 
+  depth = rep(c("mid","surface","bottom"),3),
+  day = ymd(20250610,20250610,20250610,20250918,20250918,20250918,20251201,20251201,20251201))
+
+#Well, this is not 3x3 but I think it still works 
+  
+```
+
+4. Calculate the average chlorophyll concentration at each depth across days.
+
+```{r}
+#I'm confused, we don't have enough different depths at different days. Do you mean average concentration at each day? or each depth? 
+
+
+#install.packages("dplyr")
+#library(dplyr)
+#Average chlorophyll per day 
+chloro_average_day = chloro_tibble %>% 
+  group_by(day) %>%
+  select(chlorophyll_concentration_ugL) %>%
+  summarise(average = mean(chlorophyll_concentration_ugL))
+chloro_average_day
+
+#Average chlorophyll per depth 
+chloro_average_depth = chloro_tibble %>% 
+  group_by(depth) %>%
+  select(chlorophyll_concentration_ugL) %>%
+  summarise(average = mean(chlorophyll_concentration_ugL))
+chloro_average_depth
+```
+
+# Part 3 Dataframes 
+Lake Temp_C DO_mgL
+Mendota 22.4 8.3
+Wingra 25.1 6.7
+Monona 23.7 7.5
+Waubesa 24.6 7.9
+Kegonsa 26.0 6.2
+1. Enter this data into a data frame called lakes.
+
+```{r}
+lakes_tibble = tibble(
+  lake = c("Mendota","Wingra","Monona","Waubesa","Kegonsa"),
+  temp_c = c(22.4, 25.1,23.7, 24.6, 26.0), 
+  DO_mgl = c(8.3, 6.7, 7.5, 7.9, 6.2)
+)
+
+```
+
+2. Calculate the mean temperature and mean dissolved oxygen across all lakes.
+
+```{r}
+#Average temp across all lakes 
+mean(lakes_tibble$temp_c)
+
+#Average DO across all lakes 
+mean(lakes_tibble$DO_mgl)
+
+```
+
+3. Add a new column called Temp_F with values converted to Fahrenheit.
+
+```{r}
+lakes_tibble %>% mutate(temp_f = (temp_c*(9/5) + 32))
+```
+
+
+4. [BONUS] install package <LakeMetabolizer>. Add new column for the equilibrium
+concentration of oxygen in water. Add a second new column of dissolved oxygen %
+saturation. Sort the dataframe in order of DO % saturation using the order() function.
+
+```{r}
+#install.packages("LakeMetabolizer")
+#library(LakeMetabolizer)
+
+lakes_tibble %>% mutate(o2_at_sat = o2.at.sat(lakes_tibble$temp_c,model = "garcia_benson"))
+
+o2.at.sat(lakes_tibble$temp_c,model = "garcia_benson")
+
+#I don't understand :( no Bonus for us 
+```
+
+#Part 4: For Loops
+
+1. Write a for loop that prints the square of each number from 1 to 10.
+
+```{r}
+
+numbers = c(1:10)
+for (i in numbers) {
+ print(i^2)
+}
+
+```
+
+
+2. Suppose you want to model exponential population growth with Nt=N0ert
+o Let N0=10, r=0.3, and simulate 10 time steps.
+o Use a for loop to calculate population size at each time step and store results in a
+vector called pop.
+```{r}
+#setting up our initial numbers 
+N0 = 10
+r = 0.3
+time = seq(1:10)
+#Nt = N0^(2.71828*r*t) 
+
+#Create a function for exponential growth
+t = 0 #Setting time to 0 
+exponential_growth <- function(t) {
+  return(N0^(2.71828*r*t))}
+
+#for loop 
+time = seq(1:10)
+pop = c()
+
+for (i in time) {
+  pop <- c(pop, exponential_growth(t))
+  t <- t + 1
+} #loop the function with time 
+
+#Save in a dataframe 
+d_growth = data.frame(time, pop)
+print(d_growth)
+```
+
+You collected phosphorus concentration data (μg/L) from 5 lakes. Each lake was sampled 4 times. The data are stored as a list, where each element is a vector of values for one lake.
+
+3. Create a list called phosphorus with 5 elements (one per lake), each containing 4 numeric values. Use made-up numbers, but keep them realistic (e.g., 5–40 μg/L).
+Write a for loop that:
+o Iterates through each lake in the list.
+o Calculates the mean phosphorus concentration for that lake.
+o Stores these means in a new numeric vector called lake_means.
+o Prints a message for each lake, e.g., "Lake1 mean phosphorus = 18.75 μg/L"
+
+```{r}
+
+# I know how to solve it in dplyr 
+
+#Creating data in a dataframe 
+k_tibble = tibble(
+  day = c(rep(1,5), rep(2,5), rep(3,5), rep(4,5)),
+  lake = rep(c("Lake1","Lake2","Lake3","Lake4","Lake5"),4),
+  k_ugL = runif(20,5,40))
+
+#creating a new dataframe with the lake averages 
+k_avg_per_lake = k_tibble %>% 
+  group_by(lake) %>% 
+  select(k_ugL) %>% 
+  summarize(lakemeans = mean(k_ugL))
+
+#print the means 
+print(paste(k_avg_per_lake$lake, "avg k/ugL = ",k_avg_per_lake$lakemeans,"C"))
+
+# Trying to use a loop in my tibble-organized datafram
+
+k_list = as.list(k_tibble) #convert to a list
+
+k_list[[2,1]]
+k_list[c(5,10,15)]
+lakemeans = vector()
+for (i in k_list) { 
+  print([[i]]) 
+}
+
+for (i in k_tibble$k_ugL) { 
+  print(i)
+}
+
+#Trying again in list form with a for loop 
+
+#Make a list of lakes 
+lake1 = runif(4,5,50)
+lake2 = runif(4,5,50)
+lake3 = runif(4,5,50)
+lake4 = runif(4,5,50)
+lake5 = runif(4,5,50)
+lakes = list("Lake1" = lake1, "Lake2" = lake2, "Lake3" = lake3,"Lake4" = lake4,"Lake5" = lake5)
+
+lakemeans = vector()
+for (i in lakes) { 
+  lakemeans = mean(i) 
+  print(i)
+  print(lakemeans)
+  names(i)
+}
+
+lakemeans = vector()
+for (i in lakes) { 
+  paste(print(names[[i]], "phosphorus = ",lakemeans))
+}
+`
+```{r}
+
+######################
+# CREATE A LOOP   
+######################
+
+#I have no idea how to do this 
+i = 0 
+for (i in k_tibble$lake) {
+  mean(k_ugL)
+}
+list = c(1:10)
+i = 0  #set it to something but it really doesn't matter what
+for (i in list) {
+  print(i)
+}
+
+```
+
+#Part 5: Apply Function 
+1. Revisit your chlorophyll array from Part 2. Use apply() to calculate:
+o The mean concentration for each depth (rows).
+o The mean concentration for each day (columns).
+2. Revisit your lakes data frame. Use apply() to calculate the range (max – min) of each
+numeric column.
+3. Compare your for loop population growth results with using sapply() or lapply().
+Which feels easier or cleaner?
